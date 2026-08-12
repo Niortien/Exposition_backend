@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\UserRole;
 use App\Http\Requests\Kyc\ModerateKycRequest;
 use App\Http\Requests\Kyc\SubmitKycRequest;
+use App\Http\Resources\KycRequestResource;
 use App\Models\KycRequest;
 use App\Services\Audit\AuditLogService;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 
 class KycController extends Controller
 {
@@ -38,14 +38,14 @@ class KycController extends Controller
         ], 201);
     }
 
-    public function index(Request $request): JsonResponse
+    public function index(): JsonResponse
     {
         $kycRequests = KycRequest::query()
             ->with('user:id,name,email,phone')
             ->latest()
-            ->paginate($request->integer('per_page', 20));
+            ->get();
 
-        return response()->json($kycRequests);
+        return response()->json(KycRequestResource::collection($kycRequests));
     }
 
     public function moderate(ModerateKycRequest $request, KycRequest $kycRequest): JsonResponse
@@ -57,7 +57,10 @@ class KycController extends Controller
             'reviewed_at' => now(),
         ]);
 
-        if ($kycRequest->status === 'valide' && $kycRequest->requested_role) {
+        if ($kycRequest->status === 'valide'
+            && $kycRequest->requested_role
+            && in_array($kycRequest->requested_role, UserRole::monetizableValues(), true)
+        ) {
             $kycRequest->user->assignRole($kycRequest->requested_role);
         }
 
@@ -66,6 +69,6 @@ class KycController extends Controller
             'requested_role' => $kycRequest->requested_role,
         ]);
 
-        return response()->json($kycRequest->fresh(['user']));
+        return response()->json(new KycRequestResource($kycRequest->fresh(['user'])));
     }
 }

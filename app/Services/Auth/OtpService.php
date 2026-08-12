@@ -62,7 +62,10 @@ class OtpService
             $otp->update(['consumed_at' => now()]);
 
             if ($purpose === 'phone_verification') {
-                $user->update(['phone_verified_at' => now()]);
+                // phone_verified_at n'est pas dans #[Fillable] du modèle User (protection contre
+                // le mass-assignment via des endpoints publics) — forceFill() est volontaire ici
+                // car cette écriture vient de logique interne de confiance, pas d'input utilisateur.
+                $user->forceFill(['phone_verified_at' => now()])->save();
             }
 
             $this->auditLog->log($user, 'otp.verified', $otp, ['purpose' => $purpose, 'role' => $role]);

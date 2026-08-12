@@ -86,7 +86,7 @@ class AuthController extends Controller
 
     public function requestOtp(RequestOtpRequest $request): JsonResponse
     {
-        $this->otpService->request($request->user(), $request->string('purpose'), $request->string('role') ?: null);
+        $this->otpService->request($request->user(), $request->string('purpose'), $request->input('role') ?: null);
 
         return response()->json(['message' => 'Code envoyé.']);
     }
@@ -97,7 +97,7 @@ class AuthController extends Controller
             $request->user(),
             $request->string('code'),
             $request->string('purpose'),
-            $request->string('role') ?: null,
+            $request->input('role') ?: null,
         );
 
         return response()->json(['user' => new UserResource($request->user()->fresh())]);
@@ -119,8 +119,10 @@ class AuthController extends Controller
         $user = $this->findByLogin($request->string('login'));
 
         if (! $user) {
+            // Message générique volontairement identique à celui d'un code OTP invalide,
+            // pour ne pas laisser un attaquant déduire l'existence d'un compte.
             throw ValidationException::withMessages([
-                'login' => ['Aucun compte ne correspond à ces informations.'],
+                'code' => ['Code invalide ou expiré.'],
             ]);
         }
 
