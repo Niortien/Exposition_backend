@@ -18,7 +18,10 @@ return [
     |
     */
 
-    'default' => env('LOG_CHANNEL', 'stack'),
+    // Fallback 'errorlog' plutôt que 'stack'/'single' : sur les runtimes serverless
+    // (ex. Vercel) storage/logs n'est pas accessible en écriture, donc si LOG_CHANNEL
+    // n'est pas positionné, on évite un crash en cascade lors du report d'exception.
+    'default' => env('LOG_CHANNEL', 'errorlog'),
 
     /*
     |--------------------------------------------------------------------------
