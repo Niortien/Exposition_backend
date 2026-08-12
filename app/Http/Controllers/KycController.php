@@ -51,7 +51,7 @@ class KycController extends Controller
     public function moderate(ModerateKycRequest $request, KycRequest $kycRequest): JsonResponse
     {
         $kycRequest->update([
-            'status' => $request->string('status'),
+            'status' => $request->input('status'),
             'rejection_reason' => $request->input('rejection_reason'),
             'reviewed_by' => $request->user()->id,
             'reviewed_at' => now(),

@@ -21,7 +21,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::post('kyc', [KycController::class, 'submit']);
 
-    Route::middleware('role:admin,moderateur')->group(function () {
+    Route::middleware('role:admin|moderateur')->group(function () {
         Route::get('kyc', [KycController::class, 'index']);
         Route::patch('kyc/{kycRequest}', [KycController::class, 'moderate']);
     });
